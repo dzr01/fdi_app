@@ -53,19 +53,34 @@ def load_data():
 
 
 def make_line_chart(df, y_col, title, tick_interval=1):
+    if df.empty or df[y_col].dropna().empty:
+        fig = px.line(title=title)
+        fig.add_annotation(
+            text='No data available for the selected year range.',
+            x=0.5,
+            y=0.5,
+            xref='paper',
+            yref='paper',
+            showarrow=False,
+        )
+        fig.update_layout(template='plotly_white', height=350)
+        return fig
+
     fig = px.line(df, x='Year', y=y_col, markers=True, title=title)
     if tick_interval > 1:
         fig.update_xaxes(
-            tickmode='array',
-            tickvals=list(range(int(df['Year'].min()), int(df['Year'].max()) + 1, tick_interval)),
+            tickmode='linear',
+            dtick=tick_interval,
+            tick0=int(df['Year'].min()),
             title='Year',
         )
     else:
         fig.update_xaxes(
-            tickmode='linear',
-            dtick=1,
+            tickmode='auto',
+            nticks=8,
             title='Year',
         )
+    fig.update_xaxes(tickformat='d')
     fig.update_layout(
         template='plotly_white',
         xaxis_title='Year',
@@ -157,12 +172,12 @@ trend_view = st.selectbox(
 )
 
 if trend_view == 'FDI Outflows':
-    st.plotly_chart(make_line_chart(filtered_data, 'FDI Outflows', 'FDI Outflows', show_every_5_years=False), use_container_width=True)
+    st.plotly_chart(make_line_chart(filtered_data, 'FDI Outflows', 'FDI Outflows', tick_interval=1), use_container_width=True)
 elif trend_view == 'External Debt':
-    st.plotly_chart(make_line_chart(filtered_data, 'External Debt', 'External Debt', show_every_5_years=False), use_container_width=True)
+    st.plotly_chart(make_line_chart(filtered_data, 'External Debt', 'External Debt', tick_interval=1), use_container_width=True)
 elif trend_view == 'Exchange Rate':
-    st.plotly_chart(make_line_chart(filtered_data, 'Exchange Rate', 'Exchange Rate', show_every_5_years=False), use_container_width=True)
-else:
+    st.plotly_chart(make_line_chart(filtered_data, 'Exchange Rate', 'Exchange Rate', tick_interval=1), use_container_width=True)
+elif trend_view == 'All Series Side by Side':
     col1, col2, col3 = st.columns(3)
     with col1:
         st.plotly_chart(make_line_chart(filtered_data, 'FDI Outflows', 'FDI Outflows', tick_interval=20), use_container_width=True)
